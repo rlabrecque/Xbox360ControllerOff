@@ -28,11 +28,13 @@
 
 #include <windows.h>
 #include <iostream>
-#include "XInput.h"
-
+// We use the June DirectX SDK version to get XInput 1.3.
+// The Windows 8 SDK only ships with 1.4 (Win8 only) and 9.1.0 (Does not have the function that we require).
+#include "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Include/XInput.h"
 #pragma comment(lib, "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Lib/x64/XInput.lib")
 
-using namespace std;
+using std::cout;
+using std::endl;
 
 typedef int (*FnOff)(int);
 
