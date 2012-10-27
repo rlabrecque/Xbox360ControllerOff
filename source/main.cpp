@@ -28,6 +28,7 @@
 
 #include <windows.h>
 #include <iostream>
+
 // We use the June DirectX SDK version to get XInput 1.3.
 // The Windows 8 SDK only ships with 1.4 (Win8 only) and 9.1.0 (Does not have the function that we require).
 #include "C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/Include/XInput.h"
@@ -36,33 +37,34 @@
 using std::cout;
 using std::endl;
 
-typedef int (*FnOff)(int);
+static const char g_szBatteryLevel[][6] = { "[   ]", "[-  ]", "[-- ]", "[---]" };
+typedef int (*g_pfnPowerOffController)(int);
 
 int wmain() {
-	HINSTANCE hXInputDLL = LoadLibraryA("XInput1_3.dll");
-	if (hXInputDLL == NULL) {
+	HMODULE hXInputDLL = LoadLibraryA("XInput1_3.dll");
+	if (hXInputDLL == nullptr) {
 		cout << "ERROR: Unable to load XInput1_3.dll!" << endl;
 		fgetc(stdin);
 		return 1;
 	}
-	FnOff pOff;
-	pOff = FnOff(GetProcAddress(hXInputDLL, reinterpret_cast<char*>(103)));
+	g_pfnPowerOffController XInputPowerOffController;
+	XInputPowerOffController = g_pfnPowerOffController(GetProcAddress(hXInputDLL, reinterpret_cast<char*>(103)));
 
 	unsigned result;
 	for (short i = 0; i < XUSER_MAX_COUNT; ++i) {
-		XINPUT_STATE state;
-		memset(&state, 0, sizeof(XINPUT_STATE));
+		XINPUT_STATE state = {};
 
 		result = XInputGetState(i, &state);
 
 		if(result == ERROR_SUCCESS) {
-			cout << "Controller " << i << " is on. (" << state.dwPacketNumber << ")" << endl;
-			XINPUT_BATTERY_INFORMATION batinfo;
-			memset(&batinfo, 0, sizeof(XINPUT_BATTERY_INFORMATION));
+			cout << "Controller " << i << " is on." << endl;
+			XINPUT_BATTERY_INFORMATION batinfo = {};
 			result = XInputGetBatteryInformation(i, BATTERY_DEVTYPE_GAMEPAD, &batinfo);
 
 			if(result == ERROR_SUCCESS) {
 				cout << " Battery Info: ";
+
+				// I do not like this switch but I can not map BATTERY_TYPE_* to a char array easily.
 				switch(batinfo.BatteryType) {
 				case BATTERY_TYPE_WIRED:
 					cout << "Wired ";
@@ -78,24 +80,10 @@ int wmain() {
 					cout << "Unknown ";
 				}
 
-				switch(batinfo.BatteryLevel) {
-				case BATTERY_LEVEL_EMPTY:
-					cout << "[   ]" << endl;
-					break;
-				case BATTERY_LEVEL_LOW:
-					cout << "[-  ]" << endl;
-					break;
-				case BATTERY_LEVEL_MEDIUM:
-					cout << "[-- ]" << endl;
-					break;
-				case BATTERY_LEVEL_FULL:
-					cout << "[---]" << endl;
-					break;
-				default:
-					cout << "[???]" << endl;
-				}
+				cout << g_szBatteryLevel[batinfo.BatteryLevel] << endl;
 			}
-			pOff(i);
+
+			XInputPowerOffController(i);
 		}
 		else {
 			cout << "Controller " << i << " is not connected." << endl;			
