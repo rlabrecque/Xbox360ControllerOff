@@ -58,32 +58,32 @@ int wmain() {
 
 		if(result == ERROR_SUCCESS) {
 			cout << "Controller " << i << " is on." << endl;
-			XINPUT_BATTERY_INFORMATION batinfo = {};
-			result = XInputGetBatteryInformation(i, BATTERY_DEVTYPE_GAMEPAD, &batinfo);
+			XINPUT_BATTERY_INFORMATION batteryinfo = {};
+			result = XInputGetBatteryInformation(i, BATTERY_DEVTYPE_GAMEPAD, &batteryinfo);
 
 			if(result == ERROR_SUCCESS) {
 				cout << " Battery Info: ";
 
+				cout << g_szBatteryLevel[batteryinfo.BatteryLevel];
+
 				// I do not like this switch but I can not map BATTERY_TYPE_* to a char array easily.
-				switch(batinfo.BatteryType) {
+				switch(batteryinfo.BatteryType) {
 				case BATTERY_TYPE_WIRED:
-					cout << "Wired ";
+					cout << " Wired." << endl;
 					break;
 				case BATTERY_TYPE_ALKALINE:
-					cout << "Alkaline ";
+					cout << " Alkaline." << endl;
+					XInputPowerOffController(i);
 					break;
 				case BATTERY_TYPE_NIMH:
-					cout << "Nickel Metal Hydride ";
+					cout << " Nickel Metal Hydride." << endl;
+					XInputPowerOffController(i);
 					break;
 				case BATTERY_TYPE_UNKNOWN:
 				default:
-					cout << "Unknown ";
+					cout << " Unknown." << endl;
 				}
-
-				cout << g_szBatteryLevel[batinfo.BatteryLevel] << endl;
 			}
-
-			XInputPowerOffController(i);
 		}
 		else {
 			cout << "Controller " << i << " is not connected." << endl;			
